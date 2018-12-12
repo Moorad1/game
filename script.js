@@ -7,45 +7,29 @@ var keys = {
 	down:false,
 	right:false,
 	left:false
+};
+
+var player = new Player(200,200,0,0,10,50);
+
+var bullets = [];
+var enemies = [];
+
+for (var x = 0; x < 10;x ++) {
+	enemies.push(new Enemy(Math.floor(Math.random() * 1450),Math.floor(Math.random() *1450),5))
 }
-
-class GameObject {
-	constructor(velocity,friction) {
-		this.velocity = velocity;
-		this.friction = friction;
-		this.camera = {
-			x:0,
-			y:0
-		};
-	}
-}
-
-class FullPlayer {
-	constructor(x, y, velocityX,velocityY,health,size) {
-		this.x = x,
-		this.y = y,
-		this.velocityX = velocityX;
-		this.velocityY = velocityY;
-		this.health = health;
-		this.size = size;
-		this.dead = false;
-	}
-
-	draw() {
-		ctx.fillRect(this.x - Game.camera.x, this.y - Game.camera.y, this.size, this.size);
-	}
-
-	restart() {
-		this.dead = false;
-		this.x = 0;
-		this.y = 0;
-		this.health = 5;
-	}
-}
-
-var player = new FullPlayer(200,200,0,0,10,50);
 
 var Game = new GameObject(8,0.95);
+
+var mouse = {
+	x:0,
+	y:0
+}
+
+canvas.addEventListener('click', (evt) => {
+	mouse.x = evt.offsetX;
+	mouse.y = evt.offsetY;
+	Shooting();
+});
 
 update();
 
@@ -57,6 +41,21 @@ function update() {
 	movement();
 	player.draw();
 	border();
+	bullets.forEach((bullet) => {
+		bullet.show();
+		bullet.update();
+	});
+
+	enemies.forEach((enemy) => {
+		enemy.show();
+		enemy.update();
+	});
+	collision();
+	ctx.fillStyle = '#F55536';
+	ctx.fillRect(20,20,30*player.health,40);
+
+	ctx.font = '40px Arial';
+	ctx.fillText('Wave: -1',canvas.width - 220,60);
 }
 
 document.onkeydown = (e) => {
@@ -116,5 +115,22 @@ function border() {
 		ctx.fillRect((50*i) - Game.camera.x,50*29 - Game.camera.y,50,50);
 		ctx.fillRect(0 - Game.camera.x,50*i - Game.camera.y,50,50);
 		ctx.fillRect(50*29 - Game.camera.x,50*i - Game.camera.y,50,50);
+	}
+}
+
+function Shooting() {
+	var angle = Math.atan2(mouse.y - canvas.height/2, mouse.x - canvas.width/2);
+	console.log(angle);
+	var bVelocityX = Math.cos(angle);
+	var bVelocityY = Math.sin(angle);
+	console.log(bVelocityX,bVelocityY);
+	bullets.push(new Bullet(player.x + (player.size/2) - 10,player.y + (player.size/2) - 10,bVelocityX * 10 ,bVelocityY * 10));
+}
+
+function collision() {
+	for (var e = 0; e < bullets.length;e++) {
+		if (bullets[e].y < 0 || bullets[e].y > 1450 || bullets[e].x < 0 ||bullets[e].x > 1450) {
+			bullets.splice(e,1);
+		}
 	}
 }
